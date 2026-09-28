@@ -1,0 +1,69 @@
+{
+  "name": "escalate_to_human",
+  "description": "",
+  "version": 4,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "workato_recipe_function",
+    "name": "execute",
+    "as": "47648ea7",
+    "keyword": "trigger",
+    "input": {
+      "parameters_schema_json": "[{\"name\":\"reason\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Reason\"}]"
+    },
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "name": "parameters",
+        "properties": [
+          {
+            "control_type": "text",
+            "label": "Reason",
+            "name": "reason",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "type": "object"
+      }
+    ],
+    "block": [
+      {
+        "number": 1,
+        "provider": "gmail",
+        "name": "send_mail",
+        "as": "ff1a9aa0",
+        "keyword": "action",
+        "input": {
+          "email_type": "text",
+          "subject": "Escalation Alert - Customer needs human support",
+          "body": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"47648ea7\",\"path\":[\"parameters\",\"reason\"]}')}",
+          "to": "owner@example.com"
+        },
+        "uuid": "84c8b001-b07e-479f-befe-53a3ad31c412"
+      }
+    ],
+    "comment": "Define the request and response parameters for this API endpoint",
+    "uuid": "ed3af004-4303-422e-8e3e-cb5faa52eb6e"
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_recipe_function",
+      "skip_validation": false,
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "gmail",
+      "skip_validation": false,
+      "account_id": {
+        "zip_name": "shared_gmail_acc.connection.json",
+        "name": "Shared Gmail Acc",
+        "folder": ""
+      }
+    }
+  ]
+}

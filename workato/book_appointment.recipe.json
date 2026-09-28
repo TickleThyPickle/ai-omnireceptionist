@@ -1,0 +1,112 @@
+{
+  "name": "book_appointment",
+  "description": "",
+  "version": 18,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "workato_recipe_function",
+    "name": "execute",
+    "as": "execute_1",
+    "keyword": "trigger",
+    "input": {
+      "parameters_schema_json": "[{\"name\":\"customer_name\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Customer Name\"},{\"name\":\"customer_email\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Customer Email\"},{\"name\":\"service\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Service\"},{\"name\":\"datetime\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Datetime\"},{\"name\":\"notes\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Notes\"},{\"name\":\"datetime_end\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Datetime end\"}]"
+    },
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "name": "parameters",
+        "properties": [
+          {
+            "control_type": "text",
+            "label": "Customer Name",
+            "name": "customer_name",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Customer Email",
+            "name": "customer_email",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Service",
+            "name": "service",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Datetime",
+            "name": "datetime",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Notes",
+            "name": "notes",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Datetime end",
+            "name": "datetime_end",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "type": "object"
+      }
+    ],
+    "block": [
+      {
+        "number": 1,
+        "provider": "google_calendar",
+        "name": "create_event",
+        "as": "44555f5a",
+        "keyword": "action",
+        "dynamicPickListSelection": {
+          "id": "primary"
+        },
+        "toggleCfg": {
+          "sendNotifications": true
+        },
+        "input": {
+          "sendNotifications": "true",
+          "start": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"datetime\"]}')}",
+          "summary": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"customer_name\"]}')+ \" - \" + _dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"service\"]}')",
+          "calendar_name": "workato",
+          "end_duration_new": "1"
+        },
+        "uuid": "57974023-50ea-4bc5-9885-f0ff1f37a1f3"
+      }
+    ],
+    "comment": "Create a callable recipe with specified input parameters.",
+    "uuid": "466153cd-fb7d-4411-8a39-1b5205dd15e1",
+    "skip": false
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_recipe_function",
+      "account_id": null,
+      "skip_validation": false
+    },
+    {
+      "keyword": "application",
+      "provider": "google_calendar",
+      "skip_validation": false,
+      "account_id": {
+        "zip_name": "shared_calendar.connection.json",
+        "name": "shared calendar",
+        "folder": ""
+      }
+    }
+  ]
+}

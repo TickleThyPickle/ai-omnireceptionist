@@ -1,0 +1,5 @@
+{
+  "name": "Shared Gmail Acc",
+  "provider": "gmail",
+  "root_folder": false
+}

@@ -1,0 +1,89 @@
+[
+  {
+    "name": "send_reply",
+    "description": "Send email reply",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "recipient": {
+          "type": "string"
+        },
+        "subject": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "recipient",
+        "subject",
+        "message"
+      ]
+    }
+  },
+  {
+    "name": "book_appointment",
+    "description": "Book appointment",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "service": {
+          "type": "string"
+        },
+        "datetime": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "service",
+        "datetime"
+      ]
+    }
+  },
+  {
+    "name": "log_conversation",
+    "description": "Log conversation",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "sender": {
+          "type": "string"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "action_taken": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sender",
+        "intent",
+        "action_taken"
+      ]
+    }
+  },
+  {
+    "name": "escalate_to_human",
+    "description": "Escalate to human",
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "reason"
+      ]
+    }
+  }
+]

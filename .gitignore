@@ -1,0 +1,7 @@
+# Raw, unsanitized Workato exports — never commit these
+raw/
+*.zip
+
+.DS_Store
+__pycache__/
+.env

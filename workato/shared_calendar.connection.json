@@ -1,0 +1,5 @@
+{
+  "name": "shared calendar",
+  "provider": "google_calendar",
+  "root_folder": false
+}

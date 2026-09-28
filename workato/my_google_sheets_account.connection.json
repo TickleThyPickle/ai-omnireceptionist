@@ -1,0 +1,5 @@
+{
+  "name": "My Google Sheets account",
+  "provider": "google_sheets",
+  "root_folder": false
+}

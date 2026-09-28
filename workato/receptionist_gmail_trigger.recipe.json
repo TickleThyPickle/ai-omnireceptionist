@@ -1,0 +1,928 @@
+{
+  "name": "Receptionist - Gmail trigger",
+  "description": "",
+  "version": 75,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "gmail",
+    "name": "new_email",
+    "as": "266d0895",
+    "keyword": "trigger",
+    "dynamicPickListSelection": {
+      "label_ids": "INBOX"
+    },
+    "toggleCfg": {
+      "includeSpamTrash": true
+    },
+    "input": {
+      "label_ids": "INBOX",
+      "includeSpamTrash": "true"
+    },
+    "block": [
+      {
+        "number": 1,
+        "keyword": "if",
+        "input": {
+          "type": "compound",
+          "operand": "and",
+          "conditions": [
+            {
+              "operand": "not_contains",
+              "lhs": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"gmail\",\"line\":\"266d0895\",\"path\":[\"from_email\"]}')}",
+              "rhs": "receptionist-inbox@example.com",
+              "uuid": "e761735a-c3ba-4908-a88c-c04efb30c171"
+            }
+          ]
+        },
+        "block": [
+          {
+            "number": 2,
+            "provider": "workato_variable",
+            "name": "declare_variable",
+            "as": "21b55052",
+            "keyword": "action",
+            "input": {
+              "variables": {
+                "schema": "[{\"name\":\"clean_body\",\"type\":\"string\",\"optional\":true,\"label\":\"clean_body\",\"details\":{\"real_name\":\"clean_body\"},\"control_type\":\"text\",\"parent\":[\"variables\",\"data\"]}]",
+                "data": {
+                  "clean_body": "=\"From: \" + _dp('{\"pill_type\":\"output\",\"provider\":\"gmail\",\"line\":\"266d0895\",\"path\":[\"from_email\"]}').to_s + \", Subject: \" + _dp('{\"pill_type\":\"output\",\"provider\":\"gmail\",\"line\":\"266d0895\",\"path\":[\"subject\"]}').to_s + \", Message: \" + _dp('{\"pill_type\":\"output\",\"provider\":\"gmail\",\"line\":\"266d0895\",\"path\":[\"body_plain\"]}').to_s.gsub(\"\\n\", \" \").gsub(\"\\r\", \" \").gsub('\"', \"'\").gsub(\"\\\\\", \" \")"
+                }
+              }
+            },
+            "extended_output_schema": [
+              {
+                "control_type": "text",
+                "label": "clean_body",
+                "name": "clean_body",
+                "optional": true,
+                "type": "string",
+                "details": {
+                  "real_name": "clean_body"
+                }
+              }
+            ],
+            "extended_input_schema": [
+              {
+                "add_field_label": "Add a variable",
+                "control_type": "form-schema-builder",
+                "empty_schema_title": "Add variables by giving them a name, type and default value",
+                "exclude_fields": [
+                  "hint"
+                ],
+                "item_label": "variable",
+                "label": "Variables",
+                "mark_as_required": true,
+                "name": "variables",
+                "ngIf": "!input.name",
+                "optional": true,
+                "properties": [
+                  {
+                    "control_type": "text",
+                    "label": "Schema",
+                    "extends_schema": true,
+                    "broadcast_change_event": true,
+                    "type": "string",
+                    "name": "schema"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "clean_body",
+                        "name": "clean_body",
+                        "type": "string",
+                        "optional": true,
+                        "details": {
+                          "real_name": "clean_body"
+                        },
+                        "parent": [
+                          "variables",
+                          "data"
+                        ],
+                        "hint": "Defaults to nil if not supplied.",
+                        "sticky": true
+                      }
+                    ],
+                    "label": "Data",
+                    "type": "object",
+                    "name": "data"
+                  }
+                ],
+                "type": "object"
+              }
+            ],
+            "visible_config_fields": [
+              "variables.data.clean_body"
+            ],
+            "uuid": "bafd3d95-58aa-42fd-90ee-f46d8282f5cb"
+          },
+          {
+            "number": 3,
+            "provider": "rest",
+            "name": "make_request_v2",
+            "as": "836ef0b1",
+            "keyword": "action",
+            "toggleCfg": {
+              "response.ignore_http_errors": true,
+              "disable_retries": true
+            },
+            "input": {
+              "request_name": "Send request",
+              "request": {
+                "method": "POST",
+                "content_type": "application/json",
+                "url": "https://api.anthropic.com/v1/messages",
+                "body": "='{\"model\":\"claude-haiku-4-5-20251001\",\"max_tokens\":1000,\"system\":\"You are an AI Omnireceptionist for a hair salon. When you receive an email, immediately call tools — do not write any plain text outside of tool inputs. Always call send_reply with a fully written, helpful reply in the message field, and log_conversation to log the interaction. If the email contains a full name, service, date and time, also call book_appointment. If the customer is angry or the request is too complex, call escalate_to_human. Never narrate or explain your actions outside of tool calls. Do not attach any attachments in the emails sent. Only read and respond to the most recent message in the email — ignore all quoted replies, forwarded text, or any content below a line starting with > or On ... wrote:. When calling book_appointment, always format the datetime field as ISO 8601, for example: 2025-04-25T14:00:00.\",\"tools\":[{\"name\":\"send_reply\",\"description\":\"Send email reply\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"recipient\":{\"type\":\"string\"},\"subject\":{\"type\":\"string\"},\"message\":{\"type\":\"string\"}},\"required\":[\"recipient\",\"subject\",\"message\"]}},{\"name\":\"book_appointment\",\"description\":\"Book appointment\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"service\":{\"type\":\"string\"},\"datetime\":{\"type\":\"string\"},\"notes\":{\"type\":\"string\"}},\"required\":[\"name\",\"service\",\"datetime\"]}},{\"name\":\"log_conversation\",\"description\":\"Log conversation\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"sender\":{\"type\":\"string\"},\"intent\":{\"type\":\"string\"},\"action_taken\":{\"type\":\"string\"}},\"required\":[\"sender\",\"intent\",\"action_taken\"]}},{\"name\":\"escalate_to_human\",\"description\":\"Escalate to human\",\"input_schema\":{\"type\":\"object\",\"properties\":{\"reason\":{\"type\":\"string\"}},\"required\":[\"reason\"]}}],\"messages\":[{\"role\":\"user\",\"content\":' + _dp('{\"pill_type\":\"output\",\"provider\":\"workato_variable\",\"line\":\"21b55052\",\"path\":[\"clean_body\"]}').to_json + '}]}'"
+              },
+              "response": {
+                "output_type": "json",
+                "expected_encoding": "UTF-8",
+                "ignore_http_errors": "false",
+                "response_schema": "[{\"control_type\":\"text\",\"label\":\"ID\",\"type\":\"string\",\"name\":\"id\"},{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"},{\"control_type\":\"text\",\"label\":\"Role\",\"type\":\"string\",\"name\":\"role\"},{\"control_type\":\"text\",\"label\":\"Model\",\"type\":\"string\",\"name\":\"model\"},{\"label\":\"Content\",\"of\":\"object\",\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"},{\"control_type\":\"text\",\"label\":\"Text\",\"type\":\"string\",\"name\":\"text\"}],\"type\":\"array\",\"name\":\"content\"},{\"control_type\":\"text\",\"label\":\"Stop reason\",\"type\":\"string\",\"name\":\"stop_reason\"}]"
+              },
+              "wait_for_response": "false",
+              "completion_threshold_seconds": "3600",
+              "disable_retries": "false",
+              "enable_streaming": "false"
+            },
+            "extended_output_schema": [
+              {
+                "label": "Headers",
+                "name": "headers",
+                "properties": [],
+                "type": "object"
+              },
+              {
+                "label": "Response",
+                "name": "response",
+                "properties": [
+                  {
+                    "control_type": "text",
+                    "label": "ID",
+                    "type": "string",
+                    "name": "id"
+                  },
+                  {
+                    "control_type": "text",
+                    "label": "Type",
+                    "type": "string",
+                    "name": "type"
+                  },
+                  {
+                    "control_type": "text",
+                    "label": "Role",
+                    "type": "string",
+                    "name": "role"
+                  },
+                  {
+                    "control_type": "text",
+                    "label": "Model",
+                    "type": "string",
+                    "name": "model"
+                  },
+                  {
+                    "label": "Content",
+                    "type": "array",
+                    "name": "content",
+                    "of": "object",
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      },
+                      {
+                        "control_type": "text",
+                        "label": "Text",
+                        "type": "string",
+                        "name": "text"
+                      }
+                    ]
+                  },
+                  {
+                    "control_type": "text",
+                    "label": "Stop reason",
+                    "type": "string",
+                    "name": "stop_reason"
+                  }
+                ],
+                "type": "object"
+              }
+            ],
+            "extended_input_schema": [
+              {
+                "label": "Response",
+                "name": "response",
+                "override": true,
+                "properties": [
+                  {
+                    "control_type": "select",
+                    "label": "Response content type",
+                    "pick_list": [
+                      [
+                        "Text",
+                        "rawdatatxt"
+                      ],
+                      [
+                        "Binary",
+                        "rawdata"
+                      ],
+                      [
+                        "JSON",
+                        "json"
+                      ],
+                      [
+                        "XML",
+                        "xml2"
+                      ],
+                      [
+                        "Multipart",
+                        "multipart"
+                      ]
+                    ],
+                    "hint": "Select expected format of data response type, e.g. JSON or XML. <a href=\"https://docs.workato.com/developing-connectors/http.html#response-type\" target=\"_blank\">Learn more</a>",
+                    "default": "json",
+                    "extends_schema": true,
+                    "type": "string",
+                    "name": "output_type"
+                  },
+                  {
+                    "control_type": "select",
+                    "label": "Encoding",
+                    "pick_list": "supported_encodings_without_binary_global_pick_list",
+                    "pick_list_connection_less": true,
+                    "optional": true,
+                    "default": "UTF-8",
+                    "hint": "Default encoding type is set to UTF-8, and typically doesn't need to be changed. <a href=\"https://docs.workato.com/developing-connectors/http.html#response-type\" target=\"_blank\">Learn more</a>",
+                    "type": "string",
+                    "name": "expected_encoding"
+                  },
+                  {
+                    "control_type": "schema-designer",
+                    "label": "Response schema",
+                    "sample_data_type": "json_http",
+                    "extends_schema": true,
+                    "empty_schema_title": "Describe all fields in your response.",
+                    "optional": true,
+                    "sticky": true,
+                    "type": "string",
+                    "name": "response_schema"
+                  },
+                  {
+                    "control_type": "schema-designer",
+                    "label": "HTTP response headers",
+                    "extends_schema": true,
+                    "empty_schema_title": "Describe all the response headers",
+                    "optional": true,
+                    "sticky": true,
+                    "type": "string",
+                    "name": "headers_schema"
+                  },
+                  {
+                    "control_type": "schema-designer",
+                    "label": "Multipart part headers",
+                    "extends_schema": true,
+                    "empty_schema_title": "Describe headers within each multipart part",
+                    "optional": true,
+                    "sticky": true,
+                    "hint": "Define the headers that appear in each part of the multipart response (e.g., Content-Type, Content-ID)",
+                    "ngIf": "input.response.output_type == 'multipart'",
+                    "type": "string",
+                    "name": "part_headers_schema"
+                  },
+                  {
+                    "control_type": "checkbox",
+                    "label": "Mark non-2xx response codes as success?",
+                    "default": "false",
+                    "hint": "If <b>yes</b>, non 2xx response codes returned will be marked as a successful action. If <b>no</b>, non 2xx response codes returned will be marked as an error.",
+                    "optional": true,
+                    "toggle_hint": "Select from option list",
+                    "toggle_field": {
+                      "label": "Mark non-2xx response codes as success?",
+                      "control_type": "text",
+                      "toggle_hint": "Use custom value",
+                      "default": false,
+                      "hint": "If <b>yes</b>, non 2xx response codes returned will be marked as a successful action. If <b>no</b>, non 2xx response codes returned will be marked as an error.",
+                      "optional": true,
+                      "render_input": null,
+                      "parse_output": null,
+                      "type": "boolean",
+                      "name": "ignore_http_errors"
+                    },
+                    "type": "boolean",
+                    "name": "ignore_http_errors"
+                  }
+                ],
+                "type": "object"
+              },
+              {
+                "control_type": "checkbox",
+                "default": "false",
+                "disable_formula": true,
+                "hint": "Improves performance and enables efficient handling of large datasets by streaming data to downstream actions. Falls back to fully materialized data if unsupported. <a href='https://docs.workato.com/developing-connectors/http/building-http-action.html#stream-http-responses' target='_blank'>Learn more</a>",
+                "label": "Enable streaming",
+                "name": "enable_streaming",
+                "ngIf": "input.wait_for_response == 'true' && (input.response.output_type == 'rawdata')",
+                "optional": true,
+                "parse_output": "boolean_conversion",
+                "type": "boolean",
+                "extended": true,
+                "render_input": "boolean_conversion"
+              }
+            ],
+            "uuid": "6e2921fc-91c6-452d-bc1e-1ce79a744a0e",
+            "wizardFinished": true
+          },
+          {
+            "number": 4,
+            "provider": "workato_custom_code",
+            "name": "invoke_custom_ruby_code",
+            "as": "f0b5230d",
+            "keyword": "action",
+            "input": {
+              "code": "require 'time'\n\nbody = JSON.parse(input['body'])\ncontent = body['content']\n\ntools = {}\ncontent.each do |block|\n  tools[block['name']] = block['input'] if block['type'] == 'tool_use'\nend\n\nreply = tools['send_reply']       || {}\nlog   = tools['log_conversation'] || {}\nbook  = tools['book_appointment'] || {}\n\nbook_datetime_raw = book['datetime'] || ''\nbook_datetime_parsed = book_datetime_raw.empty? ? '' : Time.parse(book_datetime_raw).iso8601\nbook_datetime_end = book_datetime_raw.empty? ? '' : (Time.parse(book_datetime_raw) + 3600).iso8601\n\n{\n  'reply_recipient'   => reply['recipient']    || '',\n  'reply_subject'     => reply['subject']      || '',\n  'reply_message'     => (reply['message']     || '').gsub(\"\\\\n\", '<br>').gsub(\"\\n\", '<br>'),\n  'log_sender'        => log['sender']         || '',\n  'log_intent'        => log['intent']         || '',\n  'log_action'        => log['action_taken']   || '',\n  'book_name'         => book['name']          || '',\n  'book_service'      => book['service']       || '',\n  'book_datetime'     => book_datetime_parsed,\n  'book_datetime_end' => book_datetime_end,\n  'book_notes'        => book['notes']         || ''\n}",
+              "name": "test",
+              "code_input": {
+                "schema": "[{\"name\":\"body\",\"type\":\"string\",\"optional\":true,\"label\":\"body\",\"details\":{\"real_name\":\"body\"},\"control_type\":\"text\",\"parent\":[\"code_input\",\"data\"]}]",
+                "data": {
+                  "body": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"body\"]}')}"
+                }
+              },
+              "code_output_schema_json": "[{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Reply recipient\",\"type\":\"object\",\"name\":\"reply_recipient\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Reply subject\",\"type\":\"object\",\"name\":\"reply_subject\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Reply message\",\"type\":\"object\",\"name\":\"reply_message\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Log sender\",\"type\":\"object\",\"name\":\"log_sender\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Log intent\",\"type\":\"object\",\"name\":\"log_intent\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Log action\",\"type\":\"object\",\"name\":\"log_action\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Book name\",\"type\":\"object\",\"name\":\"book_name\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Book service\",\"type\":\"object\",\"name\":\"book_service\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Book datetime\",\"type\":\"object\",\"name\":\"book_datetime\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Book notes\",\"type\":\"object\",\"name\":\"book_notes\"},{\"properties\":[{\"control_type\":\"text\",\"label\":\"Type\",\"type\":\"string\",\"name\":\"type\"}],\"label\":\"Book datetime end\",\"type\":\"object\",\"name\":\"book_datetime_end\"}]"
+            },
+            "extended_output_schema": [
+              {
+                "label": "Output",
+                "name": "output",
+                "properties": [
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Reply recipient",
+                    "type": "object",
+                    "name": "reply_recipient"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Reply subject",
+                    "type": "object",
+                    "name": "reply_subject"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Reply message",
+                    "type": "object",
+                    "name": "reply_message"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Log sender",
+                    "type": "object",
+                    "name": "log_sender"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Log intent",
+                    "type": "object",
+                    "name": "log_intent"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Log action",
+                    "type": "object",
+                    "name": "log_action"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Book name",
+                    "type": "object",
+                    "name": "book_name"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Book service",
+                    "type": "object",
+                    "name": "book_service"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Book datetime",
+                    "type": "object",
+                    "name": "book_datetime"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Book notes",
+                    "type": "object",
+                    "name": "book_notes"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "Type",
+                        "type": "string",
+                        "name": "type"
+                      }
+                    ],
+                    "label": "Book datetime end",
+                    "type": "object",
+                    "name": "book_datetime_end"
+                  }
+                ],
+                "type": "object"
+              }
+            ],
+            "extended_input_schema": [
+              {
+                "control_type": "form-schema-builder",
+                "label": "Input",
+                "name": "code_input",
+                "optional": true,
+                "override": true,
+                "properties": [
+                  {
+                    "control_type": "text",
+                    "label": "Schema",
+                    "extends_schema": true,
+                    "type": "string",
+                    "name": "schema"
+                  },
+                  {
+                    "properties": [
+                      {
+                        "control_type": "text",
+                        "label": "body",
+                        "name": "body",
+                        "type": "string",
+                        "optional": true,
+                        "details": {
+                          "real_name": "body"
+                        },
+                        "parent": [
+                          "code_input",
+                          "data"
+                        ]
+                      }
+                    ],
+                    "label": "Data",
+                    "type": "object",
+                    "name": "data"
+                  }
+                ],
+                "sticky": true,
+                "type": "object"
+              }
+            ],
+            "visible_config_fields": [
+              "name",
+              "code_input",
+              "code_output_schema_json",
+              "code",
+              "code_input.data.body"
+            ],
+            "uuid": "15a5fd3e-49bd-4ceb-98d4-c609e57a2509"
+          },
+          {
+            "number": 5,
+            "keyword": "if",
+            "input": {
+              "type": "compound",
+              "operand": "and",
+              "conditions": [
+                {
+                  "operand": "equals_to",
+                  "lhs": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"response\",\"stop_reason\"]}')}",
+                  "rhs": "tool_use",
+                  "uuid": "8fa77b7f-8b7c-45c1-acbd-ffb080139a75"
+                }
+              ]
+            },
+            "block": [
+              {
+                "number": 6,
+                "keyword": "if",
+                "input": {
+                  "type": "compound",
+                  "operand": "and",
+                  "conditions": [
+                    {
+                      "operand": "contains",
+                      "lhs": "=_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"body\"]}')",
+                      "rhs": "send_reply",
+                      "uuid": "5db8761e-0295-4d0a-b10a-212855009e0d"
+                    }
+                  ]
+                },
+                "block": [
+                  {
+                    "number": 7,
+                    "provider": "workato_recipe_function",
+                    "name": "call_recipe",
+                    "as": "6792563e",
+                    "keyword": "action",
+                    "dynamicPickListSelection": {
+                      "flow_id": "send_reply"
+                    },
+                    "input": {
+                      "flow_id": {
+                        "zip_name": "send_reply.recipe.json",
+                        "name": "send_reply",
+                        "folder": ""
+                      },
+                      "parameters": {
+                        "recipient": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"reply_recipient\"]}')",
+                        "subject": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"reply_subject\"]}')",
+                        "message": "=\"<html><body>\" + _dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"reply_message\"]}') + \"</body></html>\""
+                      }
+                    },
+                    "extended_input_schema": [
+                      {
+                        "label": "Parameters",
+                        "name": "parameters",
+                        "properties": [
+                          {
+                            "control_type": "text",
+                            "label": "Recipient",
+                            "name": "recipient",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Subject",
+                            "name": "subject",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Message",
+                            "name": "message",
+                            "type": "string",
+                            "optional": false
+                          }
+                        ],
+                        "type": "object"
+                      }
+                    ],
+                    "uuid": "c80290a8-5a35-4e8d-8f13-83fbeae1184c"
+                  }
+                ],
+                "uuid": "91bc6eb8-279d-49ba-9d18-6e3ad6679ada"
+              },
+              {
+                "number": 8,
+                "keyword": "if",
+                "input": {
+                  "type": "compound",
+                  "operand": "or",
+                  "conditions": [
+                    {
+                      "operand": "equals_to",
+                      "lhs": "=_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"response\"]}').to_s.include?(\"log_conversation\")",
+                      "rhs": "=true",
+                      "uuid": "b987450d-eb8a-422d-b9e8-b6317cdbd201"
+                    }
+                  ]
+                },
+                "block": [
+                  {
+                    "number": 9,
+                    "provider": "workato_recipe_function",
+                    "name": "call_recipe",
+                    "as": "167948d8",
+                    "keyword": "action",
+                    "dynamicPickListSelection": {
+                      "flow_id": "log_conversation"
+                    },
+                    "input": {
+                      "flow_id": {
+                        "zip_name": "log_conversation.recipe.json",
+                        "name": "log_conversation",
+                        "folder": ""
+                      },
+                      "parameters": {
+                        "sender": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"log_sender\"]}')",
+                        "intent": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"log_intent\"]}')",
+                        "action_taken": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"log_action\"]}')"
+                      }
+                    },
+                    "extended_input_schema": [
+                      {
+                        "label": "Parameters",
+                        "name": "parameters",
+                        "properties": [
+                          {
+                            "control_type": "text",
+                            "label": "Sender",
+                            "name": "sender",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Intent",
+                            "name": "intent",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Action taken",
+                            "name": "action_taken",
+                            "type": "string",
+                            "optional": false
+                          }
+                        ],
+                        "type": "object"
+                      }
+                    ],
+                    "uuid": "484935d0-56db-4751-ac70-ab55648cc92b"
+                  }
+                ],
+                "uuid": "6e30a785-f9d3-4852-a79d-cd6217bd3ade"
+              },
+              {
+                "number": 10,
+                "keyword": "if",
+                "input": {
+                  "type": "compound",
+                  "operand": "and",
+                  "conditions": [
+                    {
+                      "operand": "equals_to",
+                      "lhs": "=_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"response\"]}').to_s.include?(\"book_appointment\")",
+                      "rhs": "=true",
+                      "uuid": "5be4d0e3-f775-436c-85bb-34278b8751c1"
+                    }
+                  ]
+                },
+                "block": [
+                  {
+                    "number": 11,
+                    "provider": "workato_recipe_function",
+                    "name": "call_recipe",
+                    "as": "c37b89a1",
+                    "keyword": "action",
+                    "dynamicPickListSelection": {
+                      "flow_id": "book_appointment"
+                    },
+                    "input": {
+                      "flow_id": {
+                        "zip_name": "book_appointment.recipe.json",
+                        "name": "book_appointment",
+                        "folder": ""
+                      },
+                      "parameters": {
+                        "customer_name": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"book_name\"]}')",
+                        "customer_email": "=_dp('{\"pill_type\":\"output\",\"provider\":\"gmail\",\"line\":\"266d0895\",\"path\":[\"from_email\"]}')",
+                        "service": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"book_service\"]}')",
+                        "datetime": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"book_datetime\"]}')",
+                        "notes": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"book_notes\"]}')",
+                        "datetime_end": "=_dp('{\"pill_type\":\"output\",\"provider\":\"workato_custom_code\",\"line\":\"f0b5230d\",\"path\":[\"output\",\"book_datetime_end\"]}')"
+                      }
+                    },
+                    "extended_input_schema": [
+                      {
+                        "label": "Parameters",
+                        "name": "parameters",
+                        "properties": [
+                          {
+                            "control_type": "text",
+                            "label": "Customer Name",
+                            "name": "customer_name",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Customer Email",
+                            "name": "customer_email",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Service",
+                            "name": "service",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Datetime",
+                            "name": "datetime",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Notes",
+                            "name": "notes",
+                            "type": "string",
+                            "optional": false
+                          },
+                          {
+                            "control_type": "text",
+                            "label": "Datetime end",
+                            "name": "datetime_end",
+                            "type": "string",
+                            "optional": false
+                          }
+                        ],
+                        "type": "object"
+                      }
+                    ],
+                    "uuid": "46f6759b-51d8-4e9a-84d4-1dc28e9841fb"
+                  }
+                ],
+                "uuid": "39f1a4c9-6141-4941-8b6d-d54f81415827"
+              },
+              {
+                "number": 12,
+                "keyword": "if",
+                "input": {
+                  "type": "compound",
+                  "operand": "and",
+                  "conditions": [
+                    {
+                      "operand": "equals_to",
+                      "lhs": "=_dp('{\"pill_type\":\"output\",\"provider\":\"rest\",\"line\":\"836ef0b1\",\"path\":[\"response\"]}').to_s.include?(\"escalate_to_human\")",
+                      "rhs": "=true",
+                      "uuid": "681aad88-5c93-4a4b-870e-d346694efb9e"
+                    }
+                  ]
+                },
+                "block": [
+                  {
+                    "number": 13,
+                    "provider": "workato_recipe_function",
+                    "name": "call_recipe",
+                    "as": "a885cac3",
+                    "keyword": "action",
+                    "dynamicPickListSelection": {
+                      "flow_id": "escalate_to_human"
+                    },
+                    "input": {
+                      "flow_id": {
+                        "zip_name": "escalate_to_human.recipe.json",
+                        "name": "escalate_to_human",
+                        "folder": ""
+                      },
+                      "parameters": {
+                        "reason": "Customer requires human assistance"
+                      }
+                    },
+                    "extended_input_schema": [
+                      {
+                        "label": "Parameters",
+                        "name": "parameters",
+                        "properties": [
+                          {
+                            "control_type": "text",
+                            "label": "Reason",
+                            "name": "reason",
+                            "type": "string",
+                            "optional": false
+                          }
+                        ],
+                        "type": "object"
+                      }
+                    ],
+                    "uuid": "e7def1f5-592f-4bf6-a58f-5ba3fcd08cdd"
+                  }
+                ],
+                "uuid": "66bf657f-7795-4f94-bd9f-d0c991c7f2db"
+              }
+            ],
+            "uuid": "e6055d8a-25a1-4391-86e8-21614dc7a614"
+          }
+        ],
+        "uuid": "8f8d19c2-bb55-4a8b-9ec8-9bfe8e2a14fa"
+      },
+      {
+        "number": 14,
+        "as": "612a78dc",
+        "keyword": "stop",
+        "input": {
+          "stop_with_error": "false"
+        },
+        "uuid": "c5c78274-306e-4788-bb8e-0630da40f509"
+      }
+    ],
+    "uuid": "1fb8749b-699d-49b8-b8fd-c5933f571200"
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "gmail",
+      "skip_validation": false,
+      "account_id": {
+        "zip_name": "shared_gmail_acc.connection.json",
+        "name": "Shared Gmail Acc",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "rest",
+      "skip_validation": false,
+      "account_id": {
+        "zip_name": "anthropic_claude.connection.json",
+        "name": "Anthropic Claude",
+        "folder": ""
+      }
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_variable",
+      "skip_validation": false,
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_recipe_function",
+      "skip_validation": false,
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_custom_code",
+      "skip_validation": false,
+      "account_id": null
+    }
+  ]
+}

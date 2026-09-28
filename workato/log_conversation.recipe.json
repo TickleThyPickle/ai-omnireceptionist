@@ -1,0 +1,164 @@
+{
+  "name": "log_conversation",
+  "description": "",
+  "version": 12,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "workato_recipe_function",
+    "name": "execute",
+    "as": "execute_1",
+    "keyword": "trigger",
+    "input": {
+      "parameters_schema_json": "[{\"name\":\"sender\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Sender\"},{\"name\":\"intent\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Intent\"},{\"name\":\"action_taken\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Action taken\"}]"
+    },
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "name": "parameters",
+        "properties": [
+          {
+            "control_type": "text",
+            "label": "Sender",
+            "name": "sender",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Intent",
+            "name": "intent",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Action taken",
+            "name": "action_taken",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "type": "object"
+      }
+    ],
+    "block": [
+      {
+        "number": 1,
+        "provider": "google_sheets",
+        "name": "add_spreadsheet_row_v4",
+        "as": "add_spreadsheet_row_v4_2",
+        "keyword": "action",
+        "toggleCfg": {
+          "is_top_left": true
+        },
+        "input": {
+          "is_top_left": "false",
+          "team_drives": "my_drive",
+          "spreadsheet_id": "YOUR_GOOGLE_SHEET_ID",
+          "sheet": "test",
+          "data": {
+            "col_1": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"sender\"]}')}",
+            "col_2": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"intent\"]}')}",
+            "col_3": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"action_taken\"]}')}"
+          }
+        },
+        "extended_input_schema": [
+          {
+            "control_type": "select",
+            "extends_schema": true,
+            "hint": "Select a sheet to add row to. The sheet must have at least one header row. <a href='https://docs.workato.com/connectors/google-sheets/action-add-row.html#setting-up-the-google-sheet' target='_blank'>Learn more</a>",
+            "label": "Sheet",
+            "name": "sheet",
+            "optional": false,
+            "pick_list": [
+              [
+                "test",
+                "test"
+              ]
+            ],
+            "toggle_field": {
+              "control_type": "text",
+              "label": "Sheet name",
+              "toggle_hint": "Use sheet name",
+              "extends_schema": true,
+              "change_on_blur": true,
+              "toggle_to_secondary_hint": "Use sheet name",
+              "toggle_to_primary_hint": "Select a sheet",
+              "hint": "Use <b>Sheet name</b> pill from the output of other Google Sheets’ triggers/actions. Or enter sheet name manually. The sheet must have at least 1 header row in input field.",
+              "type": "string",
+              "name": "sheet_name"
+            },
+            "toggle_hint": "Select a sheet",
+            "type": "string"
+          },
+          {
+            "hint": "Input values of the new row.",
+            "label": "Columns",
+            "name": "data",
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "sender",
+                "sticky": true,
+                "optional": true,
+                "type": "string",
+                "name": "col_1"
+              },
+              {
+                "control_type": "text",
+                "label": "intent",
+                "sticky": true,
+                "optional": true,
+                "type": "string",
+                "name": "col_2"
+              },
+              {
+                "control_type": "text",
+                "label": "action_taken",
+                "sticky": true,
+                "optional": true,
+                "type": "string",
+                "name": "col_3"
+              },
+              {
+                "control_type": "text",
+                "label": "timestamp",
+                "sticky": true,
+                "optional": true,
+                "type": "string",
+                "name": "col_4"
+              }
+            ],
+            "type": "object"
+          }
+        ],
+        "comment": "Add a row to a Google Sheets spreadsheet with the provided input parameters and a timestamp.",
+        "uuid": "2e48b4a1-54ea-45f6-8062-cd9baa025f04",
+        "skip": false
+      }
+    ],
+    "comment": "Create a callable recipe with specified input parameters.",
+    "uuid": "c28b67df-cedc-42bd-b089-cf149aabc76c",
+    "skip": false
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_recipe_function",
+      "account_id": null,
+      "skip_validation": false
+    },
+    {
+      "keyword": "application",
+      "provider": "google_sheets",
+      "account_id": {
+        "zip_name": "my_google_sheets_account.connection.json",
+        "name": "My Google Sheets account",
+        "folder": ""
+      },
+      "skip_validation": false
+    }
+  ]
+}

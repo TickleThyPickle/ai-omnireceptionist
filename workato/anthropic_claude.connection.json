@@ -1,0 +1,5 @@
+{
+  "name": "Anthropic Claude",
+  "provider": "rest",
+  "root_folder": false
+}

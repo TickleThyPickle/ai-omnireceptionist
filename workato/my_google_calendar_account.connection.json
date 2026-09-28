@@ -1,0 +1,5 @@
+{
+  "name": "My Google Calendar account",
+  "provider": "google_calendar",
+  "root_folder": false
+}

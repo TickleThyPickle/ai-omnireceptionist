@@ -1,0 +1,86 @@
+{
+  "name": "claude",
+  "description": "Receptionist tools for handling customer email inquiries. Use these tools \r\nto reply to customers, book appointments, log conversations, and escalate \r\nto human agents when necessary.",
+  "auth_type": "token",
+  "tools_type": "project_assets",
+  "tools": [
+    {
+      "tool": "ref_0",
+      "name": "escalate_to_human",
+      "title": "escalate_to_human",
+      "description": "",
+      "vua_required": false,
+      "read_only": false,
+      "destructive": false,
+      "open_world": false,
+      "safe_to_retry": false
+    },
+    {
+      "tool": "ref_1",
+      "name": "log_conversation",
+      "title": "log_conversation",
+      "description": "",
+      "vua_required": false,
+      "read_only": false,
+      "destructive": false,
+      "open_world": false,
+      "safe_to_retry": false
+    },
+    {
+      "tool": "ref_2",
+      "name": "book_appointment",
+      "title": "book_appointment",
+      "description": "",
+      "vua_required": false,
+      "read_only": false,
+      "destructive": false,
+      "open_world": false,
+      "safe_to_retry": false
+    },
+    {
+      "tool": "ref_3",
+      "name": "send_reply",
+      "title": "send_reply",
+      "description": "",
+      "vua_required": false,
+      "read_only": false,
+      "destructive": false,
+      "open_world": false,
+      "safe_to_retry": false
+    }
+  ],
+  "references": {
+    "ref_0": {
+      "type": "recipe",
+      "id": {
+        "zip_name": "escalate_to_human.recipe.json",
+        "name": "escalate_to_human",
+        "folder": ""
+      }
+    },
+    "ref_1": {
+      "type": "recipe",
+      "id": {
+        "zip_name": "log_conversation.recipe.json",
+        "name": "log_conversation",
+        "folder": ""
+      }
+    },
+    "ref_2": {
+      "type": "recipe",
+      "id": {
+        "zip_name": "book_appointment.recipe.json",
+        "name": "book_appointment",
+        "folder": ""
+      }
+    },
+    "ref_3": {
+      "type": "recipe",
+      "id": {
+        "zip_name": "send_reply.recipe.json",
+        "name": "send_reply",
+        "folder": ""
+      }
+    }
+  }
+}

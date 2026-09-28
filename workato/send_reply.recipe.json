@@ -1,0 +1,100 @@
+{
+  "name": "send_reply",
+  "description": "",
+  "version": 6,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "number": 0,
+    "provider": "workato_recipe_function",
+    "name": "execute",
+    "as": "execute_1",
+    "keyword": "trigger",
+    "input": {
+      "parameters_schema_json": "[{\"name\":\"recipient\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Recipient\"},{\"name\":\"subject\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Subject\"},{\"name\":\"message\",\"type\":\"string\",\"optional\":false,\"control_type\":\"text\",\"label\":\"Message\"}]",
+      "result_schema_json": "[]"
+    },
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "name": "parameters",
+        "properties": [
+          {
+            "control_type": "text",
+            "label": "Recipient",
+            "name": "recipient",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Subject",
+            "name": "subject",
+            "type": "string",
+            "optional": false
+          },
+          {
+            "control_type": "text",
+            "label": "Message",
+            "name": "message",
+            "type": "string",
+            "optional": false
+          }
+        ],
+        "type": "object"
+      }
+    ],
+    "block": [
+      {
+        "number": 1,
+        "provider": "gmail",
+        "name": "send_mail",
+        "as": "send_mail_2",
+        "keyword": "action",
+        "input": {
+          "to": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"recipient\"]}')}",
+          "subject": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"subject\"]}')}",
+          "body": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"workato_recipe_function\",\"line\":\"execute_1\",\"path\":[\"parameters\",\"message\"]}')}",
+          "email_type": "html"
+        },
+        "visible_config_fields": [
+          "to",
+          "subject",
+          "email_type",
+          "body",
+          "attachments",
+          "attachments.file_name",
+          "attachments.file_binary_content",
+          "from",
+          "bcc",
+          "cc",
+          "reply_to"
+        ],
+        "comment": "Send an email using Gmail with the provided parameters.",
+        "uuid": "6c6adada-5b7f-4659-a9be-acbf4452c3cd",
+        "skip": false
+      }
+    ],
+    "comment": "Trigger the recipe when a callable recipe is invoked with specific parameters.",
+    "uuid": "9220625c-0bfc-4437-a280-0c1fe3f6ce7c",
+    "skip": false
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_recipe_function",
+      "account_id": null,
+      "skip_validation": false
+    },
+    {
+      "keyword": "application",
+      "provider": "gmail",
+      "account_id": {
+        "zip_name": "shared_gmail_acc.connection.json",
+        "name": "Shared Gmail Acc",
+        "folder": ""
+      },
+      "skip_validation": false
+    }
+  ]
+}
