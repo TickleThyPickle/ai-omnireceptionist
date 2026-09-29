@@ -1,8 +1,8 @@
 # AI Omnireceptionist
 
-> Built for the NAISC 2026. The screenshots below come from a live run on 23 April 2026. 
+> Built for the NAISC 2026. The screenshots are from a live run before 
 
-An email receptionist for a small service business (a hair salon), built on **Workato** with **Claude** as the reasoning layer. The receptionist reads each inbound email and decides what to do in a single model call. It can:
+An email receptionist for a small service business (a hair salon), built on Workato with Claude Haiku as the reasoning layer. The receptionist reads each inbound email and decides what to do in a single model call. It can:
 
 - reply to the customer with a helpful, fully written email
 - book an appointment in Google Calendar when the email has a name, service, date and time
@@ -45,7 +45,7 @@ Each tool Claude chooses runs its own callable recipe:
 
 ![Escalation alert email](docs/escalation-alert.png)
 
-*Email addresses are redacted.*
+Email addresses are redacted.
 
 ---
 
@@ -76,7 +76,7 @@ flowchart LR
 2. **Pre-processing.** The sender, subject and plain-text body are flattened into one string. Newlines, quotes and backslashes are removed so the text embeds safely in the JSON request.
 3. **Claude call.** The flattened email goes to the Anthropic Messages API (`claude-haiku-4-5`) with a [system prompt](prompts/system-prompt.md) and [four tool definitions](prompts/tools.json). The prompt tells Claude to act only through tools, with no free text: always `send_reply` and `log_conversation`, plus `book_appointment` or `escalate_to_human` when needed.
 4. **Parse.** A custom [Ruby step](src/parse_tool_calls.rb) turns Claude's `tool_use` blocks into flat fields. It normalises the booking time to ISO 8601 and sets a one-hour end time.
-5. **Execute recipe** Each tool Claude chose triggers the matching callable recipe. The same recipes are published as MCP tools.
+5. **Execute recipe.** Each tool Claude chose triggers the matching callable recipe. The same recipes are published as MCP tools.
 
 ---
 
