@@ -1,21 +1,19 @@
 # AI Omnireceptionist
 
-An email receptionist for a small service business (demo: a hair salon), built on **Workato** with **Claude** as the reasoning layer. The receptionist reads each inbound email and decides what to do in a single model call. It can:
+> Built for the NAISC 2026. The screenshots below come from a live run on 23 April 2026. 
+
+An email receptionist for a small service business (a hair salon), built on **Workato** with **Claude** as the reasoning layer. The receptionist reads each inbound email and decides what to do in a single model call. It can:
 
 - reply to the customer with a helpful, fully written email
 - book an appointment in Google Calendar when the email has a name, service, date and time
 - log every interaction to Google Sheets
 - escalate to a human when the customer is upset or the request is too complex
 
-The same four actions are also exposed as a **Workato MCP server**, so any MCP client (e.g. Claude) can call them directly as tools.
-
-> Built for the Workato × Claude API competition (April 2026). The screenshots below come from a live run on 23 April 2026. The Workato trial has since ended, so the [demo script](#try-it-without-workato) reproduces the Claude step locally.
+The same four actions are also exposed as a Workato MCP server, so any MCP client (e.g. Claude) can call them directly as tools.
 
 ---
 
-## The pitch
-
-Two slides from the competition pitch:
+Additional info
 
 ![Problem statement: slow replies, missed messages, manual booking errors](docs/pitch-problem.png)
 
@@ -23,9 +21,9 @@ Two slides from the competition pitch:
 
 ---
 
-## Demo
+## Example
 
-**The recipe in Workato.** A Gmail trigger filters out the receptionist's own mail, then the email goes to Claude:
+A Gmail trigger filters out the receptionist's own mail, then the email goes to Claude:
 
 ![Main recipe: Gmail trigger, sender filter, clean_body variable](docs/workato-recipe-top.png)
 
@@ -51,7 +49,7 @@ Each tool Claude chooses runs its own callable recipe:
 
 ---
 
-## How it works
+## Code
 
 ```mermaid
 flowchart LR
@@ -74,15 +72,11 @@ flowchart LR
     end
 ```
 
-1. **Trigger.** A Gmail trigger fires on every new inbox email. Mail sent *by* the receptionist inbox is skipped, so it never replies to itself.
+1. **Trigger.** A Gmail trigger fires on every new inbox email. Mail sent by the receptionist inbox is skipped, so it never replies to itself.
 2. **Pre-processing.** The sender, subject and plain-text body are flattened into one string. Newlines, quotes and backslashes are removed so the text embeds safely in the JSON request.
-3. **One Claude call.** The flattened email goes to the Anthropic Messages API (`claude-haiku-4-5`) with a [system prompt](prompts/system-prompt.md) and [four tool definitions](prompts/tools.json). The prompt tells Claude to act only through tools, with no free text: always `send_reply` and `log_conversation`, plus `book_appointment` or `escalate_to_human` when needed.
+3. **Claude call.** The flattened email goes to the Anthropic Messages API (`claude-haiku-4-5`) with a [system prompt](prompts/system-prompt.md) and [four tool definitions](prompts/tools.json). The prompt tells Claude to act only through tools, with no free text: always `send_reply` and `log_conversation`, plus `book_appointment` or `escalate_to_human` when needed.
 4. **Parse.** A custom [Ruby step](src/parse_tool_calls.rb) turns Claude's `tool_use` blocks into flat fields. It normalises the booking time to ISO 8601 and sets a one-hour end time.
-5. **Dispatch.** Each tool Claude chose triggers the matching **callable recipe**. The same recipes are published as MCP tools.
-
-### Why tool use instead of a chain of prompts
-
-A single call handles intent classification, information extraction and reply drafting together. It also returns structured arguments that the workflow can act on without guesswork. Using Haiku keeps each email to roughly one fast, cheap request.
+5. **Execute recipe** Each tool Claude chose triggers the matching callable recipe. The same recipes are published as MCP tools.
 
 ---
 
@@ -106,7 +100,7 @@ A single call handles intent classification, information extraction and reply dr
 
 ---
 
-## Try it without Workato
+## Without Workato
 
 The demo sends sample customer emails to Claude using the **exact** prompt, tools and model from the recipe. It prints what the receptionist would do with each one. Nothing is actually emailed, booked or logged.
 
@@ -165,18 +159,6 @@ python3 scripts/sanitize.py path/to/raw-export.zip
 ```
 
 The script replaces every email address and Google resource ID with a placeholder. It regenerates the readable files in `prompts/` and `src/`, then audits the repo for emails, API keys, bearer tokens and resource IDs. If anything is left, it exits with an error. Raw exports are listed in `.gitignore`.
-
----
-
-## Limitations & next steps
-
-- **Escalation reason is fixed.** The recipe sends a generic reason instead of the `reason` Claude provides. Passing Claude's reason through would give the owner more context.
-- **Routing uses string matching.** It checks whether a tool name appears in the response. Routing from the parsed tool list would be more robust.
-- **No business knowledge.** The prompt doesn't include the salon's services, prices or opening hours, so Claude can invent them when answering questions. Adding a short fact sheet to the system prompt would fix this.
-- **Single-turn.** Each email is handled on its own, with no memory of earlier messages in the thread.
-- **Timezones.** Booking times are parsed without an explicit timezone. In the demo run, a 2 PM booking was treated as UTC and landed at 10 PM Singapore time on the calendar. The fix is to attach the salon's timezone (`+08:00`) before parsing.
-- **Spam folder.** The trigger currently includes Spam/Trash. Excluding it would stop the receptionist replying to spam.
-- **Customer invites.** Calendar events are created on the business calendar only. The customer's email is available but isn't added as an attendee.
 
 ---
 
